@@ -1,0 +1,18 @@
+{
+	"apiVersion": 2,
+	"name": "benchmark-email/signup",
+	"title": "Benchmark Email Signup Form",
+	"icon": "email",
+	"category": "widgets",
+	"attributes": {
+		"listId": {
+			"type": "string",
+			"default": ""
+		}
+	},
+	"editorScript": "file:./block.js",
+	"fields": {
+		"listId": {
+		}
+	}
+}
