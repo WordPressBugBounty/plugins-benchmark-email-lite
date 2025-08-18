@@ -4,8 +4,8 @@ Donate link: https://codedcommerce.com/donate
 Tags: campaign, email marketing, mailing list, newsletter, sign up
 Requires at least: 4.9
 Requires PHP: 7.4
-Tested up to: 6.7-RC2
-Stable tag: 4.3
+Tested up to: 6.8
+Stable tag: 4.3.1
 License: GPLv2 (or later)
 
 Your Wordpress Site and Email Marketing all in one place!
@@ -78,7 +78,7 @@ Enter your WordPress URL, which is your website followed by /feed. You may wish 
 
 = Q3: Can I use Contact Form 7 (Gravity Forms, etc.) with this plugin? =
 
-Yes. The plugin does not directly use any form frameworks other than native Benchmark Email signup forms. As with most WordPress projects, you can bridge the two together with custom code. We've assembled an example based on Contact Form 7. Install the [Code Snippets plugin](https://wordpress.org/plugins/code-snippets/), import the [sample code file](https://dev.codedcommerce.com/connect-contact-form-7-form-with-benchmark-email-contact-list.code-snippets.json), edit the code snippet to change the list ID mappings within the code and tailor the form field names to match your form (or visa-versa), then enable the code snippet and test.
+Yes. The plugin does not directly use any form frameworks other than native Benchmark Email signup forms. As with most WordPress projects, you can bridge the two together with custom code. We've assembled an example based on Contact Form 7. Install the [Code Snippets plugin](https://wordpress.org/plugins/code-snippets/), download and import the [sample code file](https://gist.github.com/seanconklin/31bb359c567943226dec0e0158af8b51/archive/6984d6fa34259edfac25d2d421d4aafe3e95d514.zip), edit the code snippet to change the list ID mappings within the code and tailor the form field names to match your form (or visa-versa), then enable the code snippet and test.
 
 = Q4: Can I programmatically filter the HTML email campaigns? =
 
@@ -104,6 +104,10 @@ These filter the blog post title, the content body, the email type and generated
 
 
 == Changelog ==
+
+= 4.3.1 on 2025-08-18 =
+
+* Added: Benchmark partner handshake to the existing UI token renewal process.
 
 = 4.3 on 2024-06-07 =
 
