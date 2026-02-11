@@ -4,7 +4,7 @@ Donate link: https://codedcommerce.com/donate
 Tags: campaign, email marketing, mailing list, newsletter, sign up
 Requires at least: 4.9
 Requires PHP: 7.4
-Tested up to: 6.8
+Tested up to: 6.9-RC3
 Stable tag: 4.3.1
 License: GPLv2 (or later)
 
