@@ -68,35 +68,57 @@ add_action( 'admin_menu', function() {
 	$wpbme_key = get_option( 'wpbme_key' );
 	$wpbme_temp_token = get_option( 'wpbme_temp_token' );
 
-	// Menus When Not Connected
-	if( ! $wpbme_key || ! $wpbme_temp_token ) {
-		add_menu_page(
-			'Benchmark', 'Benchmark', 'manage_options', 'wpbme_settings',
-			[ 'wpbme_settings', 'page_settings' ], 'dashicons-email'
+	// Primary Menu
+	add_menu_page(
+		'Benchmark',
+		'Benchmark',
+		'manage_options',
+		'wpbme_settings',
+		[ 'wpbme_settings', 'page_settings' ],
+		'dashicons-email'
+	);
+
+	// Sub Menus When Connected
+	if( $wpbme_key ) {
+
+		add_submenu_page(
+			'wpbme_settings',
+			'Settings',
+			'Settings',
+			'manage_options',
+			'wpbme_settings',
+			[ 'wpbme_settings', 'page_settings' ]
 		);
 	}
 
-	// Menus When Connected
-	else {
-		add_menu_page(
-			'Benchmark', 'Benchmark', 'manage_options', 'wpbme_interface',
-			[ 'wpbme_admin', 'page_interface' ], 'dashicons-email'
+	// Sub Menus When Connected Classic
+	if( $wpbme_key && $wpbme_temp_token ) {
+		add_submenu_page(
+			'wpbme_settings',
+			'Interface',
+			'Interface',
+			'manage_options',
+			'wpbme_interface',
+			[ 'wpbme_admin', 'page_interface' ]
+		);
+	}
+
+	// Sub Menus When Connected
+	if( $wpbme_key ) {
+		add_submenu_page(
+			'wpbme_settings',
+			'Classic Widgets',
+			'Classic Widgets',
+			'manage_options',
+			'widgets.php'
 		);
 		add_submenu_page(
-			'wpbme_interface', 'Interface', 'Interface', 'manage_options',
-			'wpbme_interface', [ 'wpbme_admin', 'page_interface' ]
-		);
-		add_submenu_page(
-			'wpbme_interface', 'Signup Form Widgets', 'Signup Form Widgets',
-			'manage_options', 'widgets.php'
-		);
-		add_submenu_page(
-			'wpbme_interface', 'Shortcodes', 'Shortcodes', 'manage_options',
-			'wpbme_shortcodes', [ 'wpbme_admin', 'page_shortcodes' ]
-		);
-		add_submenu_page(
-			'wpbme_interface', 'Settings', 'Settings', 'manage_options',
-			'wpbme_settings', [ 'wpbme_settings', 'page_settings' ]
+			'wpbme_settings',
+			'Shortcodes',
+			'Shortcodes',
+			'manage_options',
+			'wpbme_shortcodes',
+			[ 'wpbme_admin', 'page_shortcodes' ]
 		);
 	}
 
@@ -105,7 +127,7 @@ add_action( 'admin_menu', function() {
 // Class For Namespacing Functions
 class wpbme_admin {
 
-	// Page Body For Benchmark UI
+	// Page Body For Classic Benchmark UI
 	static function page_interface() {
 		$tab = empty( $_GET['tab'] ) ? '/Emails/Dashboard' : '/' . sanitize_title( $_GET['tab'] );
 
@@ -113,10 +135,6 @@ class wpbme_admin {
 		if( ! empty( $_GET['post_ids'] ) ) {
 			$tab = self::setup_campaign( $_GET['post_ids'] );
 		}
-
-		// Developer Analytics
-		$tracker = ucwords( sanitize_title( ltrim( preg_replace( '/\?.*/', '', $tab ), '/' ) ) );
-		wpbme_api::tracker( 'UI-' . $tracker );
 
 		// Get Redirection Vars
 		$redirect_url = wpbme_api::authenticate_ui_redirect( $tab );
@@ -177,14 +195,15 @@ class wpbme_admin {
 
 	// Displays Shortcodes
 	static function page_shortcodes() {
-		wpbme_api::tracker( 'Shortcodes' );
+
+		$wpbme_api_2025 = get_option( 'wpbme_api_2025' );
 		$forms = wpbme_api::get_forms();
 
 		// Handle No Forms
 		if( ! $forms ) {
 			printf(
 				'<p>%s</p>',
-				__( 'Please design a signup form first!', 'benchmark-email-lite' )
+				__( 'Please design a signup form in Benchmark first!', 'benchmark-email-lite' )
 			);
 			return;
 		}
@@ -206,9 +225,8 @@ class wpbme_admin {
 				'
 					<p style="margin: 2em 0;">
 						<h2>%s</h2>
-						<code>[benchmark-email-lite form_id="%d"]</code>
+						<code>[benchmark-email-lite form_id="%s"]</code>
 					</p>
-					<hr />
 				',
 				$form->Name,
 				$form->ID
@@ -216,21 +234,23 @@ class wpbme_admin {
 		}
 
 		// Manage Forms Button
-		printf(
-			'
-				<p style="margin: 2em 0;">
-					<a href="%s">%s</a><br /><br />
-					<a href="%s">%s</a><br /><br />
-					<a href="%s" class="button-primary">%s</a>
-				</p>
-			',
-			admin_url( 'admin.php?page=wpbme_interface&tab=Signupform/FullEmbed/Details' ),
-			__( 'Create an Embedded Form', 'benchmark-email-lite' ),
-			admin_url( 'admin.php?page=wpbme_interface&tab=Signupform/Popup/Details' ),
-			__( 'Create a Popup Form', 'benchmark-email-lite' ),
-			admin_url( 'admin.php?page=wpbme_interface&tab=Listbuilder' ),
-			__( 'Manage All Signup Forms', 'benchmark-email-lite' )
-		);
+		if( $wpbme_api_2025 !== 'yes' ) {
+			printf(
+				'
+					<p style="margin: 2em 0;">
+						<a href="%s">%s</a><br /><br />
+						<a href="%s">%s</a><br /><br />
+						<a href="%s" class="button-primary">%s</a>
+					</p>
+				',
+				admin_url( 'admin.php?page=wpbme_interface&tab=Signupform/FullEmbed/Details' ),
+				__( 'Create an Embedded Form', 'benchmark-email-lite' ),
+				admin_url( 'admin.php?page=wpbme_interface&tab=Signupform/Popup/Details' ),
+				__( 'Create a Popup Form', 'benchmark-email-lite' ),
+				admin_url( 'admin.php?page=wpbme_interface&tab=Listbuilder' ),
+				__( 'Manage All Signup Forms', 'benchmark-email-lite' )
+			);
+		}
 	}
 
 	// Post-to-Campaign Assembly
@@ -279,6 +299,19 @@ class wpbme_admin {
 			$email_html,
 			$post
 		);
+
+		// 2025 API
+		if( get_option( 'wpbme_api_2025' ) === 'yes' ) {
+			if( ! $newemail ) {
+				printf(
+					'<div class="notice notice-error"><p>%s</p></div>',
+					__( 'Error creating email campaign. Please contact support.', 'benchmark-email-lite' )
+				);
+				return false;
+			} else {
+				return 'https://app.benchmarkemail.io/emails/detail?id=' . $newemail;
+			}
+		}
 
 		// Successful Email Creation
 		if( intval( $newemail ) > 1 ) {

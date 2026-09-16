@@ -111,11 +111,14 @@ class wpbme_widget extends WP_Widget {
 
 	// Widget Save
 	public function update( $new_instance, $old_instance ) {
-		wpbme_api::tracker( 'Widget-Save' );
+
 		$new_instance['title'] = empty( $new_instance['title'] )
 			? '' : sanitize_text_field( $new_instance['title'] );
+
 		$new_instance['post_id'] = empty( $new_instance['post_id'] )
 			? '' : sanitize_text_field( $new_instance['post_id'] );
+
 		return $new_instance;
+
 	}
 }

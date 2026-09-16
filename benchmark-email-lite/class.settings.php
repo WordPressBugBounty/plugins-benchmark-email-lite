@@ -9,8 +9,6 @@ class wpbme_settings {
 	// Renders WP Settings API Forms
 	static function page_settings() {
 
-		wpbme_api::tracker( 'Settings' );
-
 		// Permissions Check
 		if( ! current_user_can( 'manage_options' ) ) {
 			?>
@@ -29,14 +27,15 @@ class wpbme_settings {
 		// Nonce Check For Submitted Fields
 		if(
 			(
-				isset( $_POST[ 'wpbme_key' ] )
-				|| isset( $_POST[ 'wpbme_temp_token' ] )
-				|| isset( $_POST[ 'wpbme_ap_token' ] )
-				|| isset( $_POST[ 'wpbme_tracking_disable' ] )
-				|| isset( $_POST[ 'wpbme_usage_disable' ] )
-				|| isset( $_POST[ 'wpbme_debug' ] )
-				|| isset( $_POST[ 'BME_USERNAME' ] )
-				|| isset( $_POST[ 'BME_PASSWORD' ] )
+				isset( $_POST['wpbme_api_2025'] )
+				|| isset( $_POST['wpbme_tracking_disable'] )
+				|| isset( $_POST['wpbme_debug'] )
+				|| isset( $_POST['wpbme_username'] )
+				|| isset( $_POST['wpbme_password'] )
+				|| isset( $_POST['wpbme_key'] )
+				|| isset( $_POST['wpbme_base_url'] )
+				|| isset( $_POST['wpbme_logout'] )
+				|| isset( $_POST['wpbme_signup_form_ids'] )
 			)
 			&& ! wp_verify_nonce( $_POST['_wpnonce'], 'wbme_settings_form' )
 		) {
@@ -56,21 +55,53 @@ class wpbme_settings {
 		// Track Updates
 		$updated = false;
 
-		// Maybe Run Authentication
-		if( ! empty( $_POST['BME_USERNAME'] ) && ! empty( $_POST['BME_PASSWORD'] ) ) {
+		// Handle Log Out
+		if( isset( $_POST[ 'wpbme_logout' ] ) && $_POST[ 'wpbme_logout' ] === 'yes' ) {
+			delete_option( 'wpbme_api_2025' );
+			delete_option( 'wpbme_ap_token' );
+			delete_option( 'wpbme_key' );
+			delete_option( 'wpbme_temp_token' );
+			delete_option( 'wpbme_temp_token_ttl' );
+			$updated = true;
+		}
 
-			wpbme_api::update_partner();
+		// Maybe 2025 Authentication
+		else if(
+			! empty( $_POST[ 'wpbme_api_2025' ] ) && $_POST[ 'wpbme_api_2025' ] === 'yes'
+			&& ! empty( $_POST[ 'wpbme_key' ] )
+			&& ! empty( $_POST[ 'wpbme_base_url' ] )
+		) {
+			update_option( 'wpbme_api_2025', 'yes' );
+			update_option( 'wpbme_key', sanitize_text_field( $_POST['wpbme_key'] ) );
+			update_option( 'wpbme_base_url', sanitize_url( $_POST['wpbme_base_url'] ) );
+			$updated = true;
+		}
+
+		// Maybe 2019 Authentication
+		else if( ! empty( $_POST['wpbme_username'] ) && ! empty( $_POST['wpbme_password'] ) ) {
 
 			$response = wpbme_api::authenticate(
-				sanitize_text_field( $_POST['BME_USERNAME'] ),
-				sanitize_text_field( $_POST['BME_PASSWORD'] )
+				sanitize_text_field( $_POST['wpbme_username'] ),
+				sanitize_text_field( $_POST['wpbme_password'] )
 			);
 
-			if( $response && isset( $response['wpbme_key'] ) ) {
+			if( ! $response || empty( $response['wpbme_key'] ) ) {
 
-				$_POST['wpbme_key'] = $response['wpbme_key'];
-				$_POST[ 'wpbme_temp_token'] = $response['wpbme_temp_token'];
-				$_POST[ 'wpbme_ap_token'] = $response['wpbme_ap_token'];
+				?>
+				<div class="notice notice-error is-dismissible">
+					<p>
+						<?php _e( 'The credential failed to authenticate.', 'benchmark-email-lite' ); ?>
+						<?php echo isset( $response['error'] ) ? $response['error'] : ''; ?>
+					</p>
+				</div>
+				<?php
+
+			} else {
+
+				update_option( 'wpbme_ap_token', $response['wpbme_ap_token'] );
+				update_option( 'wpbme_key', $response['wpbme_key'] );
+				update_option( 'wpbme_temp_token', $response['wpbme_temp_token'] );
+				$updated = true;
 
 				?>
 				<div class="notice notice-success is-dismissible">
@@ -78,80 +109,34 @@ class wpbme_settings {
 				</div>
 				<?php
 
-			} else {
-
-				?>
-				<div class="notice notice-error is-dismissible">
-					<p>
-						<?php _e( 'The credential failed to authenticate.', 'benchmark-email-lite' ); ?>
-						<?php echo $response['error']; ?>
-					</p>
-				</div>
-				<?php
-
 			}
 
 		}
 
-		// Auth Keys Update
-		if( isset( $_POST[ 'wpbme_ap_token' ] ) ) {
+		// Save Fields
+		if( isset( $_POST[ 'wpbme_tracking_disable' ] ) ) {
 			update_option(
-				'wpbme_ap_token',
-				sanitize_text_field( $_POST[ 'wpbme_ap_token' ] )
+				'wpbme_tracking_disable',
+				sanitize_text_field( $_POST[ 'wpbme_tracking_disable' ] )
 			);
 			$updated = true;
 		}
-		if( isset( $_POST[ 'wpbme_key' ] ) ) {
+		if( isset( $_POST[ 'wpbme_debug' ] ) ) {
 			update_option(
-				'wpbme_key',
-				sanitize_text_field( $_POST[ 'wpbme_key' ] ) );
+				'wpbme_debug',
+				sanitize_text_field( $_POST[ 'wpbme_debug' ] )
+			);
 			$updated = true;
 		}
-		if( isset( $_POST[ 'wpbme_temp_token' ] ) ) {
+		if( isset( $_POST[ 'wpbme_signup_form_ids' ] ) ) {
 			update_option(
-				'wpbme_temp_token',
-				sanitize_text_field( $_POST[ 'wpbme_temp_token' ] )
+				'wpbme_signup_form_ids',
+				sanitize_text_field( $_POST[ 'wpbme_signup_form_ids' ] )
 			);
 			$updated = true;
 		}
 
-		// Tracker Disablement Update
-		if(
-			isset( $_POST[ 'wpbme_tracking_disable' ] )
-			&& $_POST[ 'wpbme_tracking_disable' ] == 'yes'
-		) {
-			update_option( 'wpbme_tracking_disable', 'yes' );
-			$updated = true;
-		} elseif( isset( $_POST[ 'wpbme_key' ] ) ) {
-			delete_option( 'wpbme_tracking_disable' );
-			$updated = true;
-		}
-
-		// Usage Disablement Update
-		if(
-			isset( $_POST[ 'wpbme_usage_disable' ] )
-			&& $_POST[ 'wpbme_usage_disable' ] == 'yes'
-		) {
-			update_option( 'wpbme_usage_disable', 'yes' );
-			$updated = true;
-		} elseif( isset( $_POST[ 'wpbme_key' ] ) ) {
-			delete_option( 'wpbme_usage_disable' );
-			$updated = true;
-		}
-
-		// Debug Update
-		if(
-			isset( $_POST[ 'wpbme_debug' ] )
-			&& $_POST[ 'wpbme_debug' ] == 'yes'
-		) {
-			update_option( 'wpbme_debug', 'yes' );
-			$updated = true;
-		} elseif( isset( $_POST[ 'wpbme_key' ] ) ) {
-			delete_option( 'wpbme_debug' );
-			$updated = true;
-		}
-
-		// Display Update Made
+		// Update Feedback
 		if( $updated ) {
 			wpbme_api::update_partner();
 			?>
@@ -162,16 +147,21 @@ class wpbme_settings {
 		}
 
 		// Load Settings
-		$wpbme_ap_token = get_option( 'wpbme_ap_token' );
-		$wpbme_debug = get_option( 'wpbme_debug' );
+		$wpbme_api_2025 = get_option( 'wpbme_api_2025' );
 		$wpbme_key = get_option( 'wpbme_key' );
-		$wpbme_temp_token = get_option( 'wpbme_temp_token' );
+		$wpbme_debug = get_option( 'wpbme_debug' );
 		$wpbme_tracking_disable = get_option( 'wpbme_tracking_disable' );
-		$wpbme_usage_disable = get_option( 'wpbme_usage_disable' );
-
+		$wpbme_signup_form_ids = get_option( 'wpbme_signup_form_ids' );
 		?>
 
-		<div class="wrap">
+		<style type="text/css">
+			div.benchmark-email-lite fieldset {
+				border: 0.33em outset;
+				padding: 1em;
+			}
+		</style>
+
+		<div class="wrap benchmark-email-lite">
 
 			<h1><?php _e( 'Benchmark settings', 'benchmark-email-lite' ); ?></h1>
 			<br />
@@ -180,93 +170,77 @@ class wpbme_settings {
 
 				<?php wp_nonce_field( 'wbme_settings_form' ); ?>
 
-				<fieldset style="border: 1px solid; padding: 1em; display: inline-block; margin-bottom: 2em;">
+				<?php if( $wpbme_key ) /* AUTHENTICATED FIELDS */ { ?>
+
+				<fieldset>
 
 					<legend>
-						<h2><?php _e( 'Benchmark connection', 'benchmark-email-lite' ); ?></h2>
+						<h2>
+							Benchmark
+							<?php echo $wpbme_api_2025 === 'yes' ? 'New Generation' : 'Classic';  ?>
+						</h2>
 					</legend>
 
 					<p>
-						<a href="https://ui.benchmarkemail.com/register?p=68907" target="_blank">
-							<?php _e( 'Get a FREE Benchmark Email account!', 'benchmark-email-lite' ); ?>
-						</a>
+						<strong><?php _e( 'You are currently logged in.', 'benchmark-email-lite' ); ?></strong>
 					</p>
 
 					<p>
-						<label style="display: block;">
-							<?php _e( 'Benchmark Username', 'benchmark-email-lite' ); ?><br />
-							<input type="text" name="BME_USERNAME" />
+						<label>
+							<input type="checkbox" id="wpbme_logout" name="wpbme_logout" value="yes" />
+							<?php _e( 'Log out?', 'benchmark-email-lite' ); ?>
 						</label>
 					</p>
 
+					<?php if( $wpbme_api_2025 === 'yes' ) { /* NEW BENCHMARK FIELDS */ ?>
 					<p>
 						<label style="display: block;">
-							<?php _e( 'Benchmark Password', 'benchmark-email-lite' ); ?><br />
-							<input type="password" name="BME_PASSWORD" />
+							<?php _e( 'Signup Form IDs', 'benchmark-email-lite' ); ?><br />
+							<textarea name="wpbme_signup_form_ids"><?php echo $wpbme_signup_form_ids; ?></textarea><br>
+							<em>
+								<?php _e( 'Enter one per line.', 'benchmark-email-lite' ); ?>
+								<br>
+								<?php
+								printf(
+									__(
+										'Obtain these from <a target="Benchmark" href="%s">here</a>.',
+										'benchmark-email-lite'
+									),
+									'https://app.benchmarkemail.io/forms/all'
+								);
+								?>
+								<br>
+								<?php _e( 'Click the Get Code button.', 'benchmark-email-lite' ); ?>
+								<br>
+								<?php
+								_e(
+									'Copy just the value that follows data-bme-form-id (within quotes).',
+									'benchmark-email-lite'
+								);
+								?>
+							</em>
 						</label>
 					</p>
 
-					<fieldset style="border: 1px solid; background-color: rgba( 0, 0, 0, 0.2 ); padding: 1em;">
-
-						<legend>
-							<h3><?php _e( 'Login details' , 'benchmark-email-lite' ); ?></h3>
-						</legend>
-
-						<p>
-							<label style="display: block;">
-								<?php _e( 'API Key', 'benchmark-email-lite' ); ?><br />
-								<input type="text" size="36" id="wpbme_key" name="wpbme_key" value="<?php echo $wpbme_key; ?>" /><br />
-								<em><?php _e( 'Authenticates communications with the Benchmark REST API.', 'benchmark-email-lite' ); ?></em>
-							</label>
-						</p>
-
-						<p>
-							<label style="display: block;">
-								<?php _e( 'Authentication Token', 'benchmark-email-lite' ); ?><br />
-								<input type="text" size="36" id="wpbme_temp_token" name="wpbme_temp_token" value="<?php echo $wpbme_temp_token; ?>" /><br />
-								<em><?php _e( 'Authenticates your Benchmark Interface browser session.', 'benchmark-email-lite' ); ?></em>
-							</label>
-						</p>
-
-						<p>
-							<label style="display: block;">
-								<?php _e( 'Automation Pro Token', 'benchmark-email-lite' ); ?><br />
-								<input type="text" size="36" id="wpbme_ap_token" name="wpbme_ap_token" value="<?php echo $wpbme_ap_token; ?>" /><br />
-								<em><?php _e( 'Authenticates front-end visitor tracker used by Automation Pro.', 'benchmark-email-lite' ); ?></em>
-							</label>
-						</p>
-
-					</fieldset>
-
-				</fieldset>
-
-				<div style="clear: both;"></div>
-
-				<fieldset style="border: 1px solid; padding: 1em; display: inline-block;">
-
-					<legend>
-						<h3><?php _e( 'Less common settings', 'benchmark-email-lite' ); ?></h3>
-					</legend>
-
+					<?php } else { /* CLASSIC BENCHMARK FIELDS */ ?>
 					<p>
 						<label>
 							<?php $wpbme_tracking_disable = $wpbme_tracking_disable == 'yes' ? 'checked="checked"' : ''; ?>
 							<input type="checkbox" id="wpbme_tracking_disable" name="wpbme_tracking_disable" value="yes" <?php echo $wpbme_tracking_disable; ?> />
 							<?php _e( 'Disable visitor tracking?', 'benchmark-email-lite' ); ?><br />
-							<em><?php _e( 'Optionally disable the front-end visitor tracker used by Automation Pro conversion tracking.', 'benchmark-email-lite' ); ?></em>
+							<em>
+								<?php
+								_e(
+									'Optionally disable the front-end visitor tracker used by Automation Pro conversion tracking.',
+									'benchmark-email-lite'
+								);
+								?>
+							</em>
 						</label>
 					</p>
+					<?php } /* END CLASSIC BENCHMARK FIELDS */ ?>
 
-					<p>
-						<label>
-							<?php $wpbme_usage_disable = $wpbme_usage_disable == 'yes' ? 'checked="checked"' : ''; ?>
-							<input type="checkbox" id="wpbme_usage_disable" name="wpbme_usage_disable" value="yes" <?php echo $wpbme_usage_disable; ?> />
-							<?php _e( 'Disable admin usage tracking?', 'benchmark-email-lite' ); ?><br />
-							<em><?php _e( 'Optionally disable aggregate usage statistics for the developer of this plugin.', 'benchmark-email-lite' ); ?></em>
-						</label>
-					</p>
-
-					<?php if( class_exists( 'WooCommerce' ) ) { ?>
+					<?php if( class_exists( 'WooCommerce' ) ) { /* WOOCOMMERCE FIELDS */ ?>
 					<p>
 						<label>
 							<?php $wpbme_debug = $wpbme_debug == 'yes' ? 'checked="checked"' : ''; ?>
@@ -280,13 +254,82 @@ class wpbme_settings {
 							</p>
 						</label>
 					</p>
-					<?php } ?>
+					<?php } /* END WOOCOMMERCE FIELDS */ ?>
 
 				</fieldset>
 
+				<?php } else { /* NOT AUTHENTICATED FIELDS */ ?>
+
+				<!--
+				<fieldset>
+					<legend><h2>Benchmark New Generation Accounts (October 2025+)</h2></legend>
+
+					<p>
+						<label>
+							<input type="checkbox" id="wpbme_api_2025" name="wpbme_api_2025" value="yes" />
+							<?php _e( 'Use the latest Benchmark system?', 'benchmark-email-lite' ); ?><br>
+							<em><?php printf(
+								__(
+									'Please log in as account Owner and obtain your API credentials on the <a target="Benchmark" href="%s">New Benchmark API Page</a>.',
+									'benchmark-email-lite'
+								),
+								'https://app.benchmarkemail.io/settings/api-keys'
+							); ?></em>
+						</label>
+
+					</p>
+
+					<p>
+						<label style="display: block;">
+							<?php _e( 'Your API Key', 'benchmark-email-lite' ); ?><br />
+							<input type="password" name="wpbme_key" />
+						</label>
+					</p>
+
+					<p>
+						<label style="display: block;">
+							<?php _e( 'Your API Base URL', 'benchmark-email-lite' ); ?><br />
+							<input type="url" name="wpbme_base_url" />
+						</label>
+					</p>
+
+				</fieldset>
+				<br>
+				-->
+
+				<fieldset>
+					<legend><h2>Benchmark Classic Accounts</h2></legend>
+
+					<p>
+						<label style="display: block;">
+							<?php _e( 'Benchmark Username', 'benchmark-email-lite' ); ?><br />
+							<input type="text" name="wpbme_username" />
+						</label>
+					</p>
+
+					<p>
+						<label style="display: block;">
+							<?php _e( 'Benchmark Password', 'benchmark-email-lite' ); ?><br />
+							<input type="password" name="wpbme_password" />
+						</label>
+					</p>
+
+					<p>
+						<?php _e( 'Don\'t have an account?', 'benchmark-email-lite' ); ?>
+						<a href="https://ui.benchmarkemail.com/classic-register?p=68907" target="_blank">
+							<?php _e( 'Sign up Free!', 'benchmark-email-lite' ); ?>
+						</a>
+					</p>
+
+				</fieldset>
+
+				<?php } /* END NOT AUTHENTICATED FIELDS */ ?>
+
 				<p class="submit">
 					<input type="submit" name="Submit" class="button-primary"
-						value="<?php esc_attr_e( 'Save Changes', 'benchmark-email-lite' ) ?>" />
+						value="<?php echo $wpbme_key
+							? __( 'Save Changes', 'benchmark-email-lite' )
+							: __( 'Sign In', 'benchmark-email-lite' ); ?>" />
 				</p>
 
 			</form>
