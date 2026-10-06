@@ -5,7 +5,7 @@ Tags: campaign, email marketing, mailing list, newsletter, sign up
 Requires at least: 4.9
 Requires PHP: 8.2
 Tested up to: 7.1
-Stable tag: 4.4.0
+Stable tag: 4.4.1
 License: GPLv2 (or later)
 
 Your Wordpress Site and Email Marketing all in one place!
@@ -53,11 +53,10 @@ With the Benchmark Email Lite plugin, you can quickly and easily place a signup 
 
 = Initial setup =
 
-1. If you are creating a new Benchmark Email account, [get a FREE account here](https://ui.benchmarkemail.com/classic-register?p=68907 "get a FREE Benchmark Email account!").
+1. If you are creating a new Benchmark Email account, [get a FREE Benchmark Classic account](https://ui.benchmarkemail.com/classic-register?p=68907).
 2. In your WordPress admin panel, go to Benchmark > Settings.
 3. Click "Connect to Benchmark".
-4. Enter your Benchmark Email username and click "OK".
-5. Enter your Benchmark Email password and click "OK".
+4. Enter your Benchmark Email username and password then click "OK".
 
 == Frequently Asked Questions ==
 
@@ -67,32 +66,32 @@ Please call Benchmark Email at (800) 430-4095.
 
 = Q2: Is this plugin compatible with the New Generation Benchmark system? =
 
-Not yet. In Summer 2026 We began upgrading the plugin to support the New Generation Benchmark system at https://app.benchmarkemail.io/ but we ran into some difficulties and had to pause that work.
+Not yet. In Summer 2026 We began upgrading the plugin to support the [New Generation Benchmark system](https://app.benchmarkemail.io/), but we ran into some difficulties and had to pause that work.
 
-For now we're only supporting the Classic Benchmark system at: https://ui.benchmarkemail.com/login
+For now we're only supporting the [Classic Benchmark system](https://ui.benchmarkemail.com/login).
 
 If you need a new account on Classic Benchmark, please use one of the following links by locale:
 
-* English: https://ui.benchmarkemail.com/classic-register?p=68907
-* Japanese: https://ui.benchmarkemail.com/jp/classic-register?p=68907
-* Spanish: https://ui.benchmarkemail.com/es/classic-register?p=68907
-* Portuguese: https://ui.benchmarkemail.com/br/classic-register?p=68907
-* Traditional Chinese: https://ui.benchmarkemail.com/tw/classic-register?p=68907
+* English: [English / US Benchmark Classic](https://ui.benchmarkemail.com/classic-register?p=68907)
+* Japanese: [Japanese Benchmark Classic](https://ui.benchmarkemail.com/jp/classic-register?p=68907)
+* Spanish: [Spanish Benchmark Classic](https://ui.benchmarkemail.com/es/classic-register?p=68907)
+* Portuguese: [Portuguese Benchmark Classic](https://ui.benchmarkemail.com/br/classic-register?p=68907)
+* Chinese: [Traditional Chinese Benchmark Classic](https://ui.benchmarkemail.com/tw/classic-register?p=68907)
 
 These locales are currently Classic Benchmark only:
 
-* France: https://www.benchmarkemail.com/fr/?p=68907
-* Germany: https://www.benchmarkemail.com/de/?p=68907
-* India: https://www.benchmarkemail.com/in/?p=68907
-* Italy: https://www.benchmarkemail.com/it/?p=68907
+* France: [French Benchmark Classic](https://www.benchmarkemail.com/fr/?p=68907)
+* Germany: [German Benchmark Classic](https://www.benchmarkemail.com/de/?p=68907)
+* India: [Indian Benchmark Classic](https://www.benchmarkemail.com/in/?p=68907)
+* Italy: [Italian Benchmark Classic](https://www.benchmarkemail.com/it/?p=68907)
 
 = Q3: What is an RSS email campaign? How to use? =
 
-RSS campaigns send out a digest of blog posts on a schedule using your RSS feed URL. Further details can be found here: https://kb.benchmarkemail.com/how-do-i-create-an-rss-to-email-campaign/
+RSS campaigns send out a digest of blog posts on a schedule using your RSS feed URL. Further details can be found [here](https://kb.benchmarkemail.com/how-do-i-create-an-rss-to-email-campaign/).
 
 Inside your WordPress Admin area, select Benchmark > Interface. Navigate to Emails > Create > RSS Email > Drag/Drop.
 
-Enter your WordPress URL, which is your website followed by /feed. You may wish to filter the posts by category or tag, for example: https://codedcommerce.com/category/marketing-tips/feed. You may also use category IDs and filter nagatively to exclude a comma-separated list of them, for example: https://codedcommerce.com/?cat=-52047&feed=rss2
+Enter your WordPress URL, which is your website followed by /feed. You may wish to filter the posts by category or tag, for example: /category/marketing-tips/feed. You may also use category IDs and filter nagatively to exclude a comma-separated list of them, for example: /?cat=-52047&feed=rss2
 
 = Q4: Can I use Contact Form 7 (Gravity Forms, etc.) with this plugin? =
 
@@ -120,6 +119,13 @@ These filter the blog post title, the content body, the email type and generated
 7. This is a sample pop-up signup form being used on a home page. 
 
 == Changelog ==
+
+= 4.4.1 2026-10-06 =
+
+* Added: Hyperlink to the Shortcodes page error message when no forms were found.
+* Fixed: Settings panel wasn't saving checkbox changes.
+* Removed: Admin settings style that wasn't looking so great.
+* Removed: Two expired signup form create links on the Shortcodes page.
 
 = 4.4.0 on 2026-09-15 =
 

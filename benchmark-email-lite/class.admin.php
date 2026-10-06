@@ -202,8 +202,8 @@ class wpbme_admin {
 		// Handle No Forms
 		if( ! $forms ) {
 			printf(
-				'<p>%s</p>',
-				__( 'Please design a signup form in Benchmark first!', 'benchmark-email-lite' )
+				'<p><a target="Benchmark" href="https://ui.benchmarkemail.com/listbuilder">%s</a></p>',
+				__( 'Please design a signup form in Benchmark first.', 'benchmark-email-lite' )
 			);
 			return;
 		}
@@ -238,15 +238,9 @@ class wpbme_admin {
 			printf(
 				'
 					<p style="margin: 2em 0;">
-						<a href="%s">%s</a><br /><br />
-						<a href="%s">%s</a><br /><br />
 						<a href="%s" class="button-primary">%s</a>
 					</p>
 				',
-				admin_url( 'admin.php?page=wpbme_interface&tab=Signupform/FullEmbed/Details' ),
-				__( 'Create an Embedded Form', 'benchmark-email-lite' ),
-				admin_url( 'admin.php?page=wpbme_interface&tab=Signupform/Popup/Details' ),
-				__( 'Create a Popup Form', 'benchmark-email-lite' ),
 				admin_url( 'admin.php?page=wpbme_interface&tab=Listbuilder' ),
 				__( 'Manage All Signup Forms', 'benchmark-email-lite' )
 			);

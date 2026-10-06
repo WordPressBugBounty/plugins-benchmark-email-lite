@@ -24,127 +24,101 @@ class wpbme_settings {
 			return;
 		}
 
-		// Nonce Check For Submitted Fields
-		if(
-			(
-				isset( $_POST['wpbme_api_2025'] )
-				|| isset( $_POST['wpbme_tracking_disable'] )
-				|| isset( $_POST['wpbme_debug'] )
-				|| isset( $_POST['wpbme_username'] )
-				|| isset( $_POST['wpbme_password'] )
-				|| isset( $_POST['wpbme_key'] )
-				|| isset( $_POST['wpbme_base_url'] )
-				|| isset( $_POST['wpbme_logout'] )
-				|| isset( $_POST['wpbme_signup_form_ids'] )
-			)
-			&& ! wp_verify_nonce( $_POST['_wpnonce'], 'wbme_settings_form' )
-		) {
-			?>
-			<div class="error">
-				<p><?php
-				_e(
-					'You do not have sufficient permissions to access this page.',
-					'benchmark-email-lite'
-				);
-				?></p>
-			</div>
-			<?php
-			return;
-		}
+		// Handle Submissions
+		if( isset( $_POST['_wpnonce'] ) ) {
 
-		// Track Updates
-		$updated = false;
-
-		// Handle Log Out
-		if( isset( $_POST[ 'wpbme_logout' ] ) && $_POST[ 'wpbme_logout' ] === 'yes' ) {
-			delete_option( 'wpbme_api_2025' );
-			delete_option( 'wpbme_ap_token' );
-			delete_option( 'wpbme_key' );
-			delete_option( 'wpbme_temp_token' );
-			delete_option( 'wpbme_temp_token_ttl' );
-			$updated = true;
-		}
-
-		// Maybe 2025 Authentication
-		else if(
-			! empty( $_POST[ 'wpbme_api_2025' ] ) && $_POST[ 'wpbme_api_2025' ] === 'yes'
-			&& ! empty( $_POST[ 'wpbme_key' ] )
-			&& ! empty( $_POST[ 'wpbme_base_url' ] )
-		) {
-			update_option( 'wpbme_api_2025', 'yes' );
-			update_option( 'wpbme_key', sanitize_text_field( $_POST['wpbme_key'] ) );
-			update_option( 'wpbme_base_url', sanitize_url( $_POST['wpbme_base_url'] ) );
-			$updated = true;
-		}
-
-		// Maybe 2019 Authentication
-		else if( ! empty( $_POST['wpbme_username'] ) && ! empty( $_POST['wpbme_password'] ) ) {
-
-			$response = wpbme_api::authenticate(
-				sanitize_text_field( $_POST['wpbme_username'] ),
-				sanitize_text_field( $_POST['wpbme_password'] )
-			);
-
-			if( ! $response || empty( $response['wpbme_key'] ) ) {
-
+			// Nonce Check For Submitted Fields
+			if( ! wp_verify_nonce( $_POST['_wpnonce'], 'wbme_settings_form' ) ) {
 				?>
-				<div class="notice notice-error is-dismissible">
-					<p>
-						<?php _e( 'The credential failed to authenticate.', 'benchmark-email-lite' ); ?>
-						<?php echo isset( $response['error'] ) ? $response['error'] : ''; ?>
-					</p>
+				<div class="error">
+					<p><?php
+					_e(
+						'You do not have sufficient permissions to access this page.',
+						'benchmark-email-lite'
+					);
+					?></p>
 				</div>
 				<?php
-
-			} else {
-
-				update_option( 'wpbme_ap_token', $response['wpbme_ap_token'] );
-				update_option( 'wpbme_key', $response['wpbme_key'] );
-				update_option( 'wpbme_temp_token', $response['wpbme_temp_token'] );
-				$updated = true;
-
-				?>
-				<div class="notice notice-success is-dismissible">
-					<p><?php _e( 'Your login was successful and access keys have been saved.', 'benchmark-email-lite' ); ?></p>
-				</div>
-				<?php
-
+				return;
 			}
 
-		}
+			// Handle Log Out
+			if( isset( $_POST[ 'wpbme_logout' ] ) && $_POST[ 'wpbme_logout' ] === 'yes' ) {
+				delete_option( 'wpbme_api_2025' );
+				delete_option( 'wpbme_ap_token' );
+				delete_option( 'wpbme_key' );
+				delete_option( 'wpbme_temp_token' );
+				delete_option( 'wpbme_temp_token_ttl' );
+			}
 
-		// Save Fields
-		if( isset( $_POST[ 'wpbme_tracking_disable' ] ) ) {
-			update_option(
-				'wpbme_tracking_disable',
-				sanitize_text_field( $_POST[ 'wpbme_tracking_disable' ] )
-			);
-			$updated = true;
-		}
-		if( isset( $_POST[ 'wpbme_debug' ] ) ) {
-			update_option(
-				'wpbme_debug',
-				sanitize_text_field( $_POST[ 'wpbme_debug' ] )
-			);
-			$updated = true;
-		}
-		if( isset( $_POST[ 'wpbme_signup_form_ids' ] ) ) {
-			update_option(
-				'wpbme_signup_form_ids',
-				sanitize_text_field( $_POST[ 'wpbme_signup_form_ids' ] )
-			);
-			$updated = true;
-		}
+			// Maybe 2025 Authentication
+			else if(
+				! empty( $_POST[ 'wpbme_api_2025' ] ) && $_POST[ 'wpbme_api_2025' ] === 'yes'
+				&& ! empty( $_POST[ 'wpbme_key' ] )
+				&& ! empty( $_POST[ 'wpbme_base_url' ] )
+			) {
+				update_option( 'wpbme_api_2025', 'yes' );
+				update_option( 'wpbme_key', sanitize_text_field( $_POST['wpbme_key'] ) );
+				update_option( 'wpbme_base_url', sanitize_url( $_POST['wpbme_base_url'] ) );
+			}
 
-		// Update Feedback
-		if( $updated ) {
+			// Maybe 2019 Authentication
+			else if( ! empty( $_POST['wpbme_username'] ) && ! empty( $_POST['wpbme_password'] ) ) {
+
+				$response = wpbme_api::authenticate(
+					sanitize_text_field( $_POST['wpbme_username'] ),
+					sanitize_text_field( $_POST['wpbme_password'] )
+				);
+
+				if( ! $response || empty( $response['wpbme_key'] ) ) {
+
+					?>
+					<div class="notice notice-error is-dismissible">
+						<p>
+							<?php _e( 'The credential failed to authenticate.', 'benchmark-email-lite' ); ?>
+							<?php echo isset( $response['error'] ) ? $response['error'] : ''; ?>
+						</p>
+					</div>
+					<?php
+
+				} else {
+
+					update_option( 'wpbme_ap_token', $response['wpbme_ap_token'] );
+					update_option( 'wpbme_key', $response['wpbme_key'] );
+					update_option( 'wpbme_temp_token', $response['wpbme_temp_token'] );
+
+					?>
+					<div class="notice notice-success is-dismissible">
+						<p><?php _e( 'Your login was successful and access keys have been saved.', 'benchmark-email-lite' ); ?></p>
+					</div>
+					<?php
+
+				}
+
+			} // End Maybe 2019 Authentication
+
+			// Save Fields
+			$wpbme_tracking_disable = isset( $_POST[ 'wpbme_tracking_disable' ] )
+				? sanitize_text_field( $_POST[ 'wpbme_tracking_disable' ] ) : '';
+			update_option( 'wpbme_tracking_disable', $wpbme_tracking_disable );
+
+			$wpbme_debug = isset( $_POST[ 'wpbme_debug' ] )
+				? sanitize_text_field( $_POST[ 'wpbme_debug' ] ) : '';
+			update_option( 'wpbme_debug', $wpbme_debug );
+
+			$wpbme_signup_form_ids = isset( $_POST[ 'wpbme_signup_form_ids' ] )
+				? sanitize_text_field( $_POST[ 'wpbme_signup_form_ids' ] ) : '';
+			update_option( 'wpbme_signup_form_ids', $wpbme_signup_form_ids );
+
+			// Update Feedback
 			wpbme_api::update_partner();
 			?>
 			<div class="updated">
 				<p><?php _e( 'Settings saved.', 'benchmark-email-lite' ); ?></p>
 			</div>
 			<?php
-		}
+
+		} // End Handle Submissions
 
 		// Load Settings
 		$wpbme_api_2025 = get_option( 'wpbme_api_2025' );
@@ -153,13 +127,6 @@ class wpbme_settings {
 		$wpbme_tracking_disable = get_option( 'wpbme_tracking_disable' );
 		$wpbme_signup_form_ids = get_option( 'wpbme_signup_form_ids' );
 		?>
-
-		<style type="text/css">
-			div.benchmark-email-lite fieldset {
-				border: 0.33em outset;
-				padding: 1em;
-			}
-		</style>
 
 		<div class="wrap benchmark-email-lite">
 
